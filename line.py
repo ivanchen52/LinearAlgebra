@@ -23,7 +23,9 @@ class Line(object):
 
         self.set_basepoint()
 
+#檢查直線是否平行
     def __eq__(self, ell):
+        #是否為0向量
         if self.normal_vector.is_zero():
             if not ell.normal_vector.is_zero():
                 return False
@@ -32,17 +34,18 @@ class Line(object):
                 return MyDecimal(diff).is_near_zero()
         elif ell.normal_vector.is_zero():
             return False
-
+        #是否平行
         if not self.is_parallel_to(ell):
             return False
-
+        #計算兩條直線基準點的向量
         x0 = self.basepoint
         y0 = ell.basepoint
         basepoint_difference = x0.minus(y0)
-
+        #是否跟第一條直線的法向量正相交
         n = self.normal_vector
         return basepoint_difference.is_orthogonal_to(n)
 
+#判斷平行函數
     def is_parallel_to(self, ell):
         n1 = self.normal_vector
         n2 = ell.normal_vector
@@ -53,9 +56,9 @@ class Line(object):
             n = self.normal_vector
             c = self.constant_term
             basepoint_coords = ['0']*self.dimension
-
+            
             initial_index = Line.first_nonzero_index(n.coordinates)
-            initial_coefficient = n[initial_index]
+            initial_coefficient = n.coordinates[initial_index]
 
             basepoint_coords[initial_index] = c/initial_coefficient
             self.basepoint = Vector(basepoint_coords)
@@ -65,7 +68,7 @@ class Line(object):
                 self.basepoint = None
             else:
                 raise e
-
+#計算交點，若平行（重疊分母為0）則回傳self （不重疊）回傳none
     def intersection_with(self, ell):
         try:
             A, B = self.normal_vector.coordinates
@@ -113,8 +116,8 @@ class Line(object):
 
         try:
             initial_index = Line.first_nonzero_index(n.coordinates)
-            terms = [write_coefficient(n[i], is_initial_term=(i==initial_index)) + 'x_{}'.format(i+1)
-                     for i in range(self.dimension) if round(n[i], num_decimal_places) != 0]
+            terms = [write_coefficient(n.coordinates[i], is_initial_term=(i==initial_index)) + 'x_{}'.format(i+1)
+                     for i in range(self.dimension) if round(n.coordinates[i], num_decimal_places) != 0]
             output = ' '.join(terms)
 
         except Exception as e:

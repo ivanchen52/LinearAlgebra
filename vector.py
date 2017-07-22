@@ -17,6 +17,7 @@ class Vector(object):
             if not coordinates:
                 raise ValueError
             self.coordinates = tuple([Decimal(x) for x in coordinates])
+            #self.coordinates = [float(x) for x in coordinates]#改這樣時會回傳一個list，但line.py要改寫
             self.dimension = len(self.coordinates)
 
         except ValueError:
