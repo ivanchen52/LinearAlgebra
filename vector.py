@@ -265,15 +265,15 @@ class Vector(object):
 
 
 #14練習編寫向量積函數
-v = Vector(['8.462','7.893','-8.187'])
-w = Vector(['6.984','-5.975','4.778'])
-print('#1:',v.cross(w))
+# v = Vector(['8.462','7.893','-8.187'])
+# w = Vector(['6.984','-5.975','4.778'])
+# print('#1:',v.cross(w))
 
-v = Vector(['8.987','9.838','5.031'])
-w = Vector(['-4.268','-1.861','-8.866'])
-print('#2:',v.area_of_parallelogram_with(w))
+# v = Vector(['8.987','9.838','5.031'])
+# w = Vector(['-4.268','-1.861','-8.866'])
+# print('#2:',v.area_of_parallelogram_with(w))
 
-v = Vector(['1.5','9.547','3.691'])
-w = Vector(['-6.007','0.124','5.772'])
-print('#3:',v.area_of_triangle_with(w))
+# v = Vector(['1.5','9.547','3.691'])
+# w = Vector(['-6.007','0.124','5.772'])
+# print('#3:',v.area_of_triangle_with(w))
 
