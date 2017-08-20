@@ -2,7 +2,7 @@ from decimal import Decimal, getcontext
 from copy import deepcopy
 
 from vector import Vector
-from plane import Plane
+from hyperplane import HyperPlane
 
 getcontext().prec = 30
 
@@ -50,14 +50,13 @@ class LinearSystem(object):
             n = self[k].normal_vector
             alpha = -(n[col])
             self.add_multiple_times_row_to_row(alpha,row,k)
-#22
+#22 #23
     def compute_solution(self):
         try:
             return self.do_gaussian_elimination_and_extract_solution()
 
         except Exception as e:
-            if (str(e) == self.NO_SOLUTIONS_MSG or
-               str(e) == self.INF_SOLUTIONS_MSG):
+            if str(e) == self.NO_SOLUTIONS_MSG:
                return str(e)
             else:
                 raise e
@@ -65,11 +64,46 @@ class LinearSystem(object):
     def do_gaussian_elimination_and_extract_solution(self):
         rref = self.compute_rref()
         rref.raise_exception_if_contradictory_equation()
-        rref.raise_excetion_if_too_few_pivots()
-        num_variables = rref.dimension
-        solution_coordinates = [rref.planes[i].constant_term for i in 
-                                range(num_variables)]
-        return Vector(solution_coordinates)
+
+        # rref.raise_excetion_if_too_few_pivots()
+        # num_variables = rref.dimension
+        # solution_coordinates = [rref.planes[i].constant_term for i in 
+        #                         range(num_variables)]
+        # return Vector(solution_coordinates)
+
+        direction_vectors = rref.extract_direction_vectors_for_parametrization()
+        basepoint = rref.extract_basepoint_for_parametrization()
+        return Parametrization(basepoint,direction_vectors)
+
+    def extract_direction_vectors_for_parametrization(self):
+        num_variables = self.dimension
+        pivot_indices = self.indices_of_first_nonzero_terms_in_each_row()
+        free_variable_indices = set(range(num_variables)) - set(pivot_indices)
+
+        direction_vectors = []
+
+        for free_var in free_variable_indices:
+            vector_coords = [0] * num_variables
+            vector_coords[free_var] = 1
+            for i,p in enumerate(self.planes):
+                pivot_var = pivot_indices[i]
+                if pivot_var < 0:
+                    break
+                vector_coords[pivot_var] = -p.normal_vector[free_var]
+            direction_vectors.append(Vector(vector_coords))
+
+        return direction_vectors
+
+    def extract_basepoint_for_parametrization(self):
+        num_variables = self.dimension
+        pivot_indices = self.indices_of_first_nonzero_terms_in_each_row()
+        basepoint_coords = [0] * num_variables
+        for i,p in enumerate(self.planes):
+            pivot_var = pivot_indices[i]
+            if pivot_var <0:
+                break
+            basepoint_coords[pivot_var] = p.constant_term
+        return Vector(basepoint_coords)
 
     def raise_exception_if_contradictory_equation(self):
         for p in self.planes:
@@ -89,7 +123,7 @@ class LinearSystem(object):
         num_variables = self.dimension
         if num_pivots < num_variables:
             raise Exception(self.INF_SOLUTIONS_MSG)
-#23
+
 
 #19 
     def swap_rows(self, row1, row2):
@@ -283,20 +317,60 @@ p3 = Plane(normal_vector=Vector(['1','0','-2']), constant_term='2')
 
 
 #20
+# p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
+# p2 = Plane(normal_vector=Vector(['0','1','1']), constant_term='2')
+# s = LinearSystem([p1,p2])
+# t = s.compute_triangular_form()
+# if not (t[0] == p1 and
+#         t[1] == p2):
+#     print 'test case 1 failed'
+
+# p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
+# p2 = Plane(normal_vector=Vector(['1','1','1']), constant_term='2')
+# s = LinearSystem([p1,p2])
+# t = s.compute_triangular_form()
+# if not (t[0] == p1 and
+#         t[1] == Plane(constant_term='1')):
+#     print 'test case 2 failed'
+
+# p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
+# p2 = Plane(normal_vector=Vector(['0','1','0']), constant_term='2')
+# p3 = Plane(normal_vector=Vector(['1','1','-1']), constant_term='3')
+# p4 = Plane(normal_vector=Vector(['1','0','-2']), constant_term='2')
+# s = LinearSystem([p1,p2,p3,p4])
+# t = s.compute_triangular_form()
+# if not (t[0] == p1 and
+#         t[1] == p2 and
+#         t[2] == Plane(normal_vector=Vector(['0','0','-2']), constant_term='2') and
+#         t[3] == Plane()):
+#     print 'test case 3 failed'
+
+# p1 = Plane(normal_vector=Vector(['0','1','1']), constant_term='1')
+# p2 = Plane(normal_vector=Vector(['1','-1','1']), constant_term='2')
+# p3 = Plane(normal_vector=Vector(['1','2','-5']), constant_term='3')
+# s = LinearSystem([p1,p2,p3])
+# t = s.compute_triangular_form()
+# if not (t[0] == Plane(normal_vector=Vector(['1','-1','1']), constant_term='2') and
+#         t[1] == Plane(normal_vector=Vector(['0','1','1']), constant_term='1') and
+#         t[2] == Plane(normal_vector=Vector(['0','0','-9']), constant_term='-2')):
+#     print 'test case 4 failed'
+
+
+#21
 p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
 p2 = Plane(normal_vector=Vector(['0','1','1']), constant_term='2')
 s = LinearSystem([p1,p2])
-t = s.compute_triangular_form()
-if not (t[0] == p1 and
-        t[1] == p2):
+r = s.compute_rref()
+if not (r[0] == Plane(normal_vector=Vector(['1','0','0']), constant_term='-1') and
+        r[1] == p2):
     print 'test case 1 failed'
 
 p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
 p2 = Plane(normal_vector=Vector(['1','1','1']), constant_term='2')
 s = LinearSystem([p1,p2])
-t = s.compute_triangular_form()
-if not (t[0] == p1 and
-        t[1] == Plane(constant_term='1')):
+r = s.compute_rref()
+if not (r[0] == p1 and
+        r[1] == Plane(constant_term='1')):
     print 'test case 2 failed'
 
 p1 = Plane(normal_vector=Vector(['1','1','1']), constant_term='1')
@@ -304,19 +378,19 @@ p2 = Plane(normal_vector=Vector(['0','1','0']), constant_term='2')
 p3 = Plane(normal_vector=Vector(['1','1','-1']), constant_term='3')
 p4 = Plane(normal_vector=Vector(['1','0','-2']), constant_term='2')
 s = LinearSystem([p1,p2,p3,p4])
-t = s.compute_triangular_form()
-if not (t[0] == p1 and
-        t[1] == p2 and
-        t[2] == Plane(normal_vector=Vector(['0','0','-2']), constant_term='2') and
-        t[3] == Plane()):
+r = s.compute_rref()
+if not (r[0] == Plane(normal_vector=Vector(['1','0','0']), constant_term='0') and
+        r[1] == p2 and
+        r[2] == Plane(normal_vector=Vector(['0','0','-2']), constant_term='2') and
+        r[3] == Plane()):
     print 'test case 3 failed'
 
 p1 = Plane(normal_vector=Vector(['0','1','1']), constant_term='1')
 p2 = Plane(normal_vector=Vector(['1','-1','1']), constant_term='2')
 p3 = Plane(normal_vector=Vector(['1','2','-5']), constant_term='3')
 s = LinearSystem([p1,p2,p3])
-t = s.compute_triangular_form()
-if not (t[0] == Plane(normal_vector=Vector(['1','-1','1']), constant_term='2') and
-        t[1] == Plane(normal_vector=Vector(['0','1','1']), constant_term='1') and
-        t[2] == Plane(normal_vector=Vector(['0','0','-9']), constant_term='-2')):
+r = s.compute_rref()
+if not (r[0] == Plane(normal_vector=Vector(['1','0','0']), constant_term=Decimal('23')/Decimal('9')) and
+        r[1] == Plane(normal_vector=Vector(['0','1','0']), constant_term=Decimal('7')/Decimal('9')) and
+        r[2] == Plane(normal_vector=Vector(['0','0','1']), constant_term=Decimal('2')/Decimal('9'))):
     print 'test case 4 failed'
